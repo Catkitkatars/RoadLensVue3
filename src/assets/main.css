@@ -1,0 +1,36 @@
+@import url(https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,600;1,600&family=Russo+One&display=swap);
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.leaflet-top .leaflet-control {
+    margin-top: 100px !important;
+}
+
+.button-add {
+    margin: 0 !important;
+    background-color: rgb(30 41 59 / 1);
+    transition: .3s;
+    border-radius: 10px;
+}
+.button-add:hover {
+    background-color: #42556c;
+}
+
+.addButton a {
+    position: relative;
+    display: inline-block;
+    padding: 10px 20px;
+    color: #fff !important;
+    background-color: #243b55;
+    font-size: 16px;
+    text-decoration: none;
+    text-transform: uppercase;
+    overflow: hidden;
+    transition: .5s;
+    margin-top: 40px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: .3s;
+}

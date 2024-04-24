@@ -1,0 +1,11 @@
+services:
+  roadlens-frontend:
+    container_name: roadlens_frontend
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8082:5173
+    volumes:
+      - ./src:/app/src
+
