@@ -1,6 +1,7 @@
 import axios from "axios";
 import L from 'leaflet';
-import * as sampleModule from 'leaflet-geotag-photo';
+// import * as sampleModule from 'leaflet-geotag-photo';
+
 
 const cameraService = {
     option: {
@@ -47,17 +48,17 @@ const cameraService = {
             'Content-Type': 'application/json',
         };
         return await axios.post('http://localhost:8080/api/getCameras', requestData, {headers: headers})
-              .then(res => cameraService.pointsHandler(res.data, cameraService.option))
+              .then(res => res.data)
     },
-    pointsHandler: (points, option) => {
-        let result = {};
-        points.forEach((pointObject) => {
-            let point = L.geotagPhoto.camera(pointObject, option)
-            point.properties = pointObject.properties;
-            result[point.properties.ulid] = point
-        });
-        return result;
-    }
+    // pointsHandler: (points, option) => {
+    //     let result = {};
+    //     points.forEach((pointObject) => {
+    //         let point = L.geotagPhoto.camera(pointObject, option)
+    //         point.properties = pointObject.properties;
+    //         result[point.properties.ulid] = point
+    //     });
+    //     return result;
+    // }
 }
 
 

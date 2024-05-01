@@ -11,8 +11,8 @@ import Map from "@/components/Map.vue";
     class="relative w-full h-full"
   >
     <Map/>
-  </div>
 
+  </div>
 
 </template>
 
