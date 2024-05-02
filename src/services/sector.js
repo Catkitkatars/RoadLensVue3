@@ -87,10 +87,8 @@ import L from 'leaflet';
             if (newEndAngle < 0) {
                 newEndAngle += 360;
             }
-            // Проверяем разницу между углами
             var widthAngle = (newEndAngle - newStartAngle + 360) % 360;
-            // console.log(this.getMiddleAngleCoords());
-            // Обновляем сектор, если ширина удовлетворяет условиям
+
             if (widthAngle >= 5 && widthAngle <= 120) {
                 this.setAngles(newStartAngle, newEndAngle);
                 this.options.angle = widthAngle;
