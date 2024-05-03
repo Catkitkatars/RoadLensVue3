@@ -7,15 +7,18 @@
           :center="center"
           @ready="onBoundsUpdate"
           @update:bounds="onBoundsUpdate">
+        <Section
+            v-for="(section, index) in sections"
+            :key="index"
+            :id="index"
+            :polyline-data="section"
+        ></Section>
         <l-point
             v-for="(point) in points"
             :key="point.properties.ulid"
             :id="point.properties.ulid"
-            :lat-lng="[point.geometry.geometries[0].coordinates[1], point.geometry.geometries[0].coordinates[0]]"
-            :distance="point.properties.distance"
-            :direction="point.properties.direction"
-            :angle="point.properties.angle"
-            :model="point.properties.model"
+            :section="sections[point.properties.isASC]"
+            :properties="point.properties"
         ></l-point>
         <l-tile-layer
           :url="url"
@@ -28,15 +31,19 @@
 <script lang="ts">
 import "leaflet/dist/leaflet.css";
 import {LMap, LTileLayer, LMarker, LIcon, LPolygon, LFeatureGroup} from "@vue-leaflet/vue-leaflet";
-import cameraService from "@/services/CameraService";
-import LPoint from './Point.vue';
+import pointService from "@/services/PointService";
+import sectionService from "@/services/SectionService";
+import LPoint from '@/components/Point.vue';
+import Section from "@/components/Section.vue";
 import {inject} from "vue";
+
 export default {
   setup() {
     const globalPoint = inject('globalPoint');
     return { globalPoint };
   },
   components: {
+    Section,
     LMap,
     LTileLayer,
     LFeatureGroup,
@@ -50,6 +57,7 @@ export default {
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '<a href="#">RoadLens 2024</a>',
       points: [],
+      sections: [],
     };
   },
   watch: {
@@ -68,30 +76,17 @@ export default {
       if (!this.bounds) {
         return;
       }
-      this.points = await cameraService.getPoints(this.bounds);
 
-      const sections = this.points.reduce((acc, item) => {
-        if (item.properties.isASC === 0) {
-          return acc;
-        }
+      const points = await pointService.getPoints(this.bounds);
+      const selectedPoint = this.globalPoint.getActivePoint();
 
-        const sectionId = item.properties.isASC;
-        const pointId = item.properties.ulid;
-        const coords = [item.geometry.geometries[0].coordinates[1], item.geometry.geometries[0].coordinates[0]];
+      if(selectedPoint) {
+        pointService.removePoint(points, selectedPoint.properties.ulid);
+        points.push(pointService.createPoint(selectedPoint));
+      }
+      this.sections = sectionService.getSections(points)
 
-        if (!acc[sectionId])
-        {
-          acc[sectionId] = { [pointId]: { coords } };
-        }
-        else
-        {
-          acc[sectionId][pointId] = { coords };
-        }
-
-        return acc;
-      }, {});
-
-      console.log(sections);
+      this.points = points;
     },
   },
 };

@@ -3,7 +3,7 @@ import L from 'leaflet';
 // import * as sampleModule from 'leaflet-geotag-photo';
 
 
-const cameraService = {
+const pointService = {
     getPoints: async (bounds) => {
         let requestData = {
             northEastLat: bounds._northEast.lat,
@@ -17,8 +17,18 @@ const cameraService = {
         return await axios.post('http://localhost:8080/api/getCameras', requestData, {headers: headers})
               .then(res => res.data)
     },
+    createPoint: (selectedPoint) => {
+        return {
+            properties: selectedPoint.properties
+        }
+    },
+    removePoint(points, id) {
+        const index = points.findIndex(point => point.properties.ulid === id);
+        if (index !== -1) {
+            points.splice(index, 1);
+        }
+    },
 
 }
 
-
-export default cameraService;
+export default pointService;

@@ -57,7 +57,7 @@ import L from 'leaflet';
         setDirection: function (pointCoords) {
             var centerLatLng = this._latlng;
 
-            var direction = L.CRS.Earth.bearing(pointCoords, centerLatLng);
+            var direction = Math.round(L.CRS.Earth.bearing(pointCoords, centerLatLng));
 
             this.setSector(direction, this.options.angle);
         },
@@ -65,9 +65,10 @@ import L from 'leaflet';
         setLength: function (pointCoords) {
             var centerLatLng = this._latlng;
 
-            var newRadius = centerLatLng.distanceTo(pointCoords);
+            var newRadius = Math.round(centerLatLng.distanceTo(pointCoords));
 
             this.setRadius(newRadius);
+            this.options.radius = this._mRadius
         },
         setWidth: function (newEndAngleCoords) {
             // Получаем текущие координаты угла start
@@ -77,8 +78,8 @@ import L from 'leaflet';
             var bearingChange = L.CRS.Earth.bearing(newEndAngleCoords, this._latlng) - L.CRS.Earth.bearing(currentStartLatLng, this._latlng);
 
             // Рассчитываем новые углы с учетом периодичности
-            var newStartAngle = (this.options.startAngle + bearingChange) % 360;
-            var newEndAngle = (this.options.endAngle - bearingChange) % 360;
+            var newStartAngle = Math.round((this.options.startAngle + bearingChange) % 360);
+            var newEndAngle = Math.round((this.options.endAngle - bearingChange) % 360);
 
             // Обрабатываем отрицательные значения
             if (newStartAngle < 0) {
@@ -122,6 +123,7 @@ import L from 'leaflet';
         setSector: function (direction, centralAngle) {
             this.options.direction = direction;
             this.options.angle = centralAngle;
+            this.options.radius = this.getRadius();
 
             var halfAngle = centralAngle / 2;
             var startAngle = direction - halfAngle;
