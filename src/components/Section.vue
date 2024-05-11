@@ -1,6 +1,6 @@
 <template>
   <div>
-    <l-polyline :lat-lngs="polylineCoords" :color="color"></l-polyline>
+    <l-polyline :lat-lngs="polylineCoords" :color="color" :dash-array="dashArray" :opacity="opacity" ></l-polyline>
   </div>
 </template>
 
@@ -24,7 +24,8 @@ export default {
   data() {
     return {
       color: 'red',
-      latLng: null,
+      dashArray: '10, 10',
+      opacity: 0.7,
     }
   },
   computed: {

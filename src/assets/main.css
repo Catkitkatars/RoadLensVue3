@@ -34,3 +34,15 @@
     cursor: pointer;
     transition: .3s;
 }
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 5px;
+}
+::-webkit-scrollbar-track-piece  {
+    background-color: #334156;
+}
+::-webkit-scrollbar-thumb:vertical {
+    height: 10px;
+    background-color: #069668;
+}
