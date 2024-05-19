@@ -1,7 +1,5 @@
 import axios from "axios";
 import L from 'leaflet';
-// import * as sampleModule from 'leaflet-geotag-photo';
-
 
 const pointService = {
     getPoints: async (bounds) => {

@@ -1,26 +1,26 @@
 <template>
-  <div style="z-index: 1000" class="absolute top-4 left-6 rounded-lg overflow-auto">
+  <div style="z-index: 1000" class="absolute top-4 left-10 rounded-lg overflow-auto">
     <div
-        v-if="!isEdited"
+        v-if="activePoint"
         style="width: 600px; max-height: 85vh; overflow: auto"
         class="
         px-2 py-4 pb-8 rounded-lg
     bg-slate-700 relative flex align-middle flex-col"
     >
-      <div class="absolute bg-emerald-600 top-5 right-5 w-7 h-7 rounded-full flex justify-center items-center">
+      <div class="absolute bg-emerald-600 top-5 right-5 w-7 h-7 rounded-md flex justify-center items-center">
         <span
             class=" material-icons text-white cursor-pointer"
             @click="closeBlock">close
         </span>
       </div>
       <div class="px-2">
-        <h2 class="text-center text-white px-4 py-5 font-bold text-xl"> {{ point.properties.ulid }} </h2>
+        <h2 class="text-center text-white px-4 py-5 font-bold text-xl"> {{ activePoint.properties.ulid }} </h2>
         <div class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4">
           <p
               class="absolute -top-5 left-4 text-white bg-emerald-600 p-2 rounded-lg"
           >Характеристики</p>
-          <p class="text-white my-2">Тип: <span> {{ typeList[point.properties.type].label }} </span></p>
-          <p class="text-white my-2">Модель: <span> {{ modelList[point.properties.model].label }} </span></p>
+          <p class="text-white my-2">Тип: <span> {{ typeList[activePoint.properties.type].label }} </span></p>
+          <p class="text-white my-2">Модель: <span> {{ modelList[activePoint.properties.model].label }} </span></p>
         </div>
         <div class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4 flex justify-around align-middle">
           <p
@@ -45,23 +45,23 @@
           <div class="flex justify-center items-center">
             <span class="text-white my-2 material-icons cursor-pointer">
             directions_car
-          </span> <span class="text-white ml-2 d-inline-block text-center"> {{ point.properties.car_speed }} </span>
+          </span> <span class="text-white ml-2 d-inline-block text-center"> {{ activePoint.properties.car_speed }} </span>
           </div>
           <div class="flex justify-center items-center">
             <span class="text-white my-2 material-icons cursor-pointer">
             local_shipping
-            </span> <span class="text-white ml-2"> {{ point.properties.truck_speed }} </span>
+            </span> <span class="text-white ml-2"> {{ activePoint.properties.truck_speed }} </span>
           </div>
         </div>
         <div
-            v-if="point.properties.isASC"
+            v-if="activePoint.properties.isASC"
             class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4 flex justify-around align-middle">
           <p
               class="absolute -top-5 left-4 text-white bg-emerald-600 p-2 rounded-lg"
           >Средняя скорость</p>
           <div class="flex justify-center items-center my-4">
             <p
-                v-if="point.properties.ASC.previous"
+                v-if="activePoint.properties.ASC.previous"
                 class="text-white relative">| ___________
               <span class="material-icons text-center absolute top-4 left-10">
                   trending_flat
@@ -70,7 +70,7 @@
                 videocam
               </span>
               <span
-                  v-if="!point.properties.ASC.next"
+                  v-if="!activePoint.properties.ASC.next"
                   class="relative">|
                 <span class="text-emerald-600 my-2 material-icons cursor-pointer absolute -top-5 -left-2">
                 videocam
@@ -78,7 +78,7 @@
               </span>
             </p>
             <p
-                v-if="point.properties.ASC.next"
+                v-if="activePoint.properties.ASC.next"
                 class="text-white relative">
               | ____________________ |
               <span class="text-emerald-600 my-2 material-icons cursor-pointer absolute -top-4 -left-2">
@@ -91,7 +91,7 @@
                 <span class="text-white my-2 material-icons cursor-pointer">
                 speed
                 </span>
-                <span class="text-white ml-2 d-inline-block text-center"> {{ point.properties.ASC.speed }} км/ч </span>
+                <span class="text-white ml-2 d-inline-block text-center"> {{ activePoint.properties.ASC.speed }} км/ч </span>
               </div>
               <span class="material-icons text-center absolute top-4 left-8">
                   trending_flat
@@ -102,9 +102,9 @@
             </p>
           </div>
           <div>
-            <p v-if="point.properties.ASC.previous" class="text-white my-2 text-sm cursor-pointer">Пред.: <span>{{ point.properties.ASC.previous }}</span></p>
-            <p v-if="point.properties.ASC.next" class="text-white my-2 text-sm cursor-pointer">След.: <span>{{ point.properties.ASC.next  }}</span></p>
-            <p class="text-white my-2 text-sm">Ср. Скорость: <span>{{ point.properties.ASC.speed }}</span></p>
+            <p v-if="activePoint.properties.ASC.previous" class="text-white my-2 text-sm cursor-pointer">Пред.: <span>{{ activePoint.properties.ASC.previous }}</span></p>
+            <p v-if="activePoint.properties.ASC.next" class="text-white my-2 text-sm cursor-pointer">След.: <span>{{ activePoint.properties.ASC.next  }}</span></p>
+            <p class="text-white my-2 text-sm">Ср. Скорость: <span>{{ activePoint.properties.ASC.speed }}</span></p>
           </div>
 
         </div>
@@ -113,9 +113,9 @@
               class="absolute -top-5 left-4 text-white bg-emerald-600 p-2 rounded-lg"
           >Информация</p>
           <p class="text-white my-2">Статус: <span>Подтверждена</span></p>
-          <p class="text-white my-2">Дата создания: <span>{{ point.properties.dateCreate }}</span></p>
-          <p class="text-white my-2">Дата обновления: <span>{{ point.properties.lastUpdate }}</span></p>
-          <p class="text-white my-2">Модератор: <span>{{ point.properties.user }}</span></p>
+          <p class="text-white my-2">Дата создания: <span>{{ activePoint.properties.dateCreate }}</span></p>
+          <p class="text-white my-2">Дата обновления: <span>{{ activePoint.properties.lastUpdate }}</span></p>
+          <p class="text-white my-2">Модератор: <span>{{ activePoint.properties.user }}</span></p>
         </div>
       </div>
       <div class="mx-4">
@@ -124,282 +124,21 @@
         </button>
       </div>
     </div>
-    <form
-        v-if="isEdited"
-        style="width: 600px; max-height: 85vh; overflow: auto"
-        class="
-
-        px-4 py-4 pb-4 rounded-lg
-        bg-slate-700 p-4"
-    >
-      <div class="absolute bg-emerald-600 top-5 right-5 w-7 h-7 rounded-full flex justify-center items-center z-10 shadow-xl shadow-slate-700">
-        <span
-            class=" material-icons text-white cursor-pointer"
-            @click="closeBlock">close
-        </span>
-      </div>
-      <div class="absolute bg-emerald-600 top-5 left-4 w-7 h-7 rounded-full flex justify-center items-center z-10 shadow-xl shadow-slate-700">
-        <span
-          class=" material-icons text-white cursor-pointer"
-          @click="backEditBlock">
-          arrow_back
-        </span>
-      </div>
-
-      <h2 v-if="activePoint.properties.ulid" class="text-white text-center text-2xl">
-        Редактирование
-        <span>{{ activePoint.properties.ulid }}</span>
-      </h2>
-      <p v-if="activePoint.properties.isDeleted === 0" class="text-green-500 text-center">Действующая</p>
-      <p v-if="activePoint.properties.isDeleted === 1" class="text-red-500">Удалена</p>
-      <h2 v-if="!activePoint.properties.ulid" class="text-white text-center text-2xl"> Создание </h2>
-
-
-      <div class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4">
-        <p
-            class="absolute -top-5 left-4 text-white bg-emerald-600 p-2 rounded-lg"
-        >Местоположение</p>
-
-        <div class="my-2">
-          <Select
-              heading="Страна"
-              ref="country"
-              :selectable-items="countrysList"
-              :id="'country'"
-              :selected-value="activePoint.properties.country"
-              @get-country-number="getCountryNumber"
-          />
-        </div>
-        <div class="my-2">
-          <Select
-              ref="region"
-              v-if="region"
-              heading="Регион"
-              :selectable-items="region"
-              :id="'region'"
-              :selected-value="activePoint.properties.region"
-          />
-        </div>
-
-        <div class="flex my-2">
-          <div class="bg-slate-700 pr-0.5 w-full" >
-            <label class="text-white" for="direction">
-              Широта
-            </label>
-            <input
-                class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="direction" type="text" v-model="activePoint.properties.latLng[0]"
-                @input="activePoint.setInputLatLng()"
-            />
-          </div>
-          <div class="bg-slate-700 pl-0.5 w-full" >
-            <label class="text-white" for="direction">
-              Долгота
-            </label>
-            <input
-                class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="direction" type="text" v-model="activePoint.properties.latLng[1]"
-                @input="activePoint.setInputLatLng()"
-            />
-          </div>
-        </div>
-
-      </div>
-      <div class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4">
-        <p
-            class="absolute -top-5 left-4 text-white bg-emerald-600 p-2 rounded-lg"
-        >Характеристики</p>
-
-        <div class="my-2">
-          <Select
-              heading="Тип"
-              :selectable-items="typeList"
-              :id="'type'"
-              :selected-value="activePoint.properties.type"
-          />
-        </div>
-        <div class="my-2">
-          <Select
-              heading="Модель"
-              :selectable-items="modelList"
-              :id="'model'"
-              :selected-value="activePoint.properties.model"
-          />
-        </div>
-        <div class="my-2">
-          <Select
-              heading="Доп. Контроль"
-              :selectable-items="flagsList"
-              :id="'flags'"
-              :multiple="true"
-          />
-        </div>
-        <div class="my-2">
-          <Select
-              heading="Статус"
-              :selectable-items="status"
-              :id="'status'"
-          />
-        </div>
-
-        <div class="flex my-2">
-          <div class="bg-slate-700 pr-0.5" >
-            <label class="text-white" for="angle">
-              Ширина луча
-            </label>
-            <input
-                class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="angle" type="text" v-model="activePoint.properties.angle"
-                @input="activePoint.setInputWidth()"
-            />
-          </div>
-          <div class="bg-slate-700 pl-0.5 pr-0.5" >
-            <label class="text-white" for="direction">
-              Направление луча
-            </label>
-            <input
-                class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="direction" type="text" v-model="activePoint.properties.direction"
-                @input="activePoint.setInputDirection()"
-            />
-          </div>
-          <div class="bg-slate-700 pl-0.5" >
-            <label class="text-white" for="distance">
-              Длина луча
-            </label>
-            <input
-                class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="distance" type="text"
-                v-model="activePoint.properties.distance"
-                @input="activePoint.setInputDistance()"
-            />
-          </div>
-        </div>
-        <div class="flex my-2">
-          <div class="bg-slate-700 pl-0.5 pr-0.5" >
-            <label class="text-white" for="direction">
-              Скорость легковые
-            </label>
-            <input
-                class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="direction" type="text" v-model="activePoint.properties.car_speed"
-            />
-          </div>
-          <div class="bg-slate-700 pl-0.5" >
-            <label class="text-white" for="distance">
-              Скорость грузовые
-            </label>
-            <input
-                class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="distance" type="text" v-model="activePoint.properties.truck_speed"
-            />
-          </div>
-        </div>
-        <div class="inline-flex items-center">
-          <label class="relative flex items-center p-3 rounded-full cursor-pointer" htmlFor="teal">
-            <input type="checkbox"
-                   class="before:content[''] peer relative h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-gray-200 transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-blue-gray-500 before:opacity-0 before:transition-opacity checked:border-emerald-600 checked:bg-emerald-600 checked:before:bg-emerald-600 hover:before:opacity-10"
-                   id="avs_checkbox"
-                   v-model="ascBlockChecked"/>
-            <span
-                class="absolute text-white transition-opacity opacity-0 pointer-events-none top-2/4 left-2/4 -translate-y-2/4 -translate-x-2/4 peer-checked:opacity-100">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"
-                   stroke="currentColor" stroke-width="1">
-                <path fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"></path>
-              </svg>
-            </span>
-          </label>
-          <label
-              class="text-white"
-              for="avs_checkbox">
-            Контроль средней скорости
-          </label>
-        </div>
-        <div v-if="ascBlockChecked">
-          <div class="flex my-2">
-            <div
-                v-if="activePoint.properties.ASC.previous"
-                class="bg-slate-700 pl-0.5 pr-0.5 w-1/3" >
-              <label class="text-white" for="direction">
-                Предыдущая
-              </label>
-              <input
-                  class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="direction" type="text" v-model="activePoint.properties.ASC.previous"
-              />
-            </div>
-            <div class="bg-slate-700 pl-0.5 pr-0.5 w-1/3" >
-              <label class="text-white" for="distance">
-                Средняя скорость
-              </label>
-              <input
-                  class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="distance" type="text" v-model="activePoint.properties.ASC.speed"
-              />
-            </div>
-            <div
-                v-if="activePoint.properties.ASC.next || !activePoint"
-                class="bg-slate-700 pl-0.5 w-1/3" >
-              <label class="text-white" for="distance">
-                Следующая
-              </label>
-              <input
-                  class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="distance" type="text" v-model="activePoint.properties.ASC.next"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4">
-        <p
-            class="absolute -top-5 left-4 text-white bg-emerald-600 p-2 rounded-lg"
-        >Информация</p>
-        <p class="text-white my-2">Дата создания: <span>{{ activePoint.properties.dateCreate }}</span></p>
-        <p class="text-white my-2">Дата обновления: <span>{{ activePoint.properties.lastUpdate }}</span></p>
-        <p class="text-white my-2">Модератор: <span>{{ activePoint.properties.user }}</span></p>
-      </div>
-      <div v-if="!activePoint" class="flex">
-        <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
-          Создать
-        </button>
-      </div>
-      <div v-if="activePoint.properties.isDeleted === 0" class="flex">
-        <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
-          Обновить
-        </button>
-      </div>
-    </form>
   </div>
 
 </template>
 
 <script lang="ts">
-
-import {inject} from "vue";
 import Select from "@/components/Select.vue";
+import store from "@/store/store";
 
 export default {
-  emits: ['set-active-point'],
-  setup() {
-    const globalPoint = inject('globalPoint');
-    return { globalPoint };
-  },
   components: {
     Select
-  },
-  props: {
-    point: {
-      type: Object,
-      required: true,
-    },
   },
   data() {
     return {
       isEdited: false,
-      activePoint: null,
       countryNumber: null,
       region: null,
       ascBlockChecked: false,
@@ -583,81 +322,33 @@ export default {
       ]
     }
   },
+  computed: {
+    activePoint()  {
+      return store.getters.activePoint;
+    }
+  },
   methods: {
     closeBlock() {
-      let activePoint = this.globalPoint.getActivePoint();
-      activePoint.changeColorClick();
-      activePoint.changeColorMouseOverOut();
-      activePoint.isEdited = false;
-      this.isEdited = false
-      activePoint.isActive = false;
-      this.globalPoint.setActivePoint(null);
-      this.$emit('set-active-point');
-    },
-    backEditBlock() {
-      let activePoint = this.globalPoint.getActivePoint();
-      this.activePoint = activePoint;
-      console.log(activePoint);
-      activePoint.isEdited = false;
-      this.isEdited = false;
+      this.activePoint.isActive = false;
+      this.activePoint.changeColorClick();
+      this.activePoint.changeColorMouseOverOut();
+      this.$store.dispatch('setActivePoint', null);
+
+      const params = this.$route.params;
+      this.$router.push({ name: 'Home', params: {
+                                              lat: params.lat,
+                                              lng: params.lng,
+                                              zoom: params.zoom,
+      } })
     },
     startEdit() {
-      let activePoint = this.globalPoint.getActivePoint();
-      this.activePoint = activePoint;
-      console.log(activePoint);
-      activePoint.isEdited = !activePoint.isEdited;
-      this.isEdited = true
-    },
-    getCountryNumber(number: number) {
-      if(number === 0) {
-        this.activePoint.properties.region = 0
-        this.region = null;
-        return;
-      }
-      if(this.countryNumber !== null && this.countryNumber !== (number - 1)) {
-        if(this.$refs.region) {
-          this.$refs.region.selectedItem = this.regionsList[number - 1][0];
-        }
-      }
-      this.countryNumber = number - 1
-      this.region = this.regionsList[number - 1]
+      this.activePoint.isActive = false;
+      this.activePoint.isEdited = true;
+
+      this.$router.push({ name: 'EditBlock', params: { id: this.activePoint.properties.ulid } })
     },
   },
-  created() {
-    let activePoint = this.globalPoint.getActivePoint();
-    if(activePoint.properties.isASC) {
-      this.ascBlockChecked = true;
-    }
-  }
 }
 
 
 </script>
-
-<style scoped>
-
-input[type="range"]::-webkit-slider-thumb {
-  background-color: #ff0000; /* Цвет ползунка */
-}
-
-input[type="range"]::-moz-range-thumb {
-  background-color: #ff0000; /* Цвет ползунка */
-}
-
-input[type="range"]::-ms-thumb {
-  background-color: #ff0000; /* Цвет ползунка */
-}
-
-/* Для цвета фона ползунка */
-input[type="range"]::-webkit-slider-runnable-track {
-  background-color: #00ff00; /* Цвет фона ползунка */
-}
-
-input[type="range"]::-moz-range-track {
-  background-color: #00ff00; /* Цвет фона ползунка */
-}
-
-input[type="range"]::-ms-track {
-  background-color: #00ff00; /* Цвет фона ползунка */
-}
-</style>

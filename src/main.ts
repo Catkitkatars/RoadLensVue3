@@ -1,23 +1,16 @@
 import './assets/main.css'
 
 import { createApp, provide } from 'vue'
+import store from './store/store'
+import router from './router/router'
 import App from './App.vue'
 
 const app = createApp(App);
 
-const globalPoint = {
-    activePoint: null,
-    setActivePoint(pointId) {
-        this.activePoint = pointId;
-    },
-    getActivePoint() {
-        return this.activePoint;
-    },
-};
-
-app.provide('globalPoint', globalPoint);
-
-app.mount('#app');
+app
+    .use(store)
+    .use(router)
+    .mount('#app');
 
 
 

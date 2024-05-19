@@ -46,3 +46,24 @@
     height: 10px;
     background-color: #069668;
 }
+touch .leaflet-bar {
+    border: 0px solid !important;
+    background-clip: padding-box;
+}
+.leaflet-left .leaflet-control {
+    margin-left: 0 !important;
+}
+.leaflet-control-zoom-in {
+    background: #069668 !important;
+    color: white !important;
+}
+.leaflet-control-zoom-in:hover {
+    background: #04654a !important;
+}
+.leaflet-control-zoom-out {
+    background: #069668 !important;
+    color: white !important;
+}
+.leaflet-control-zoom-out:hover {
+    background: #04654a !important;
+}

@@ -1,5 +1,5 @@
 <template>
-  <l-feature-group @click="toggleIsActive">
+  <l-feature-group @click="toggleActiveEditedStatus">
     <l-marker ref="generalPoint" :icon="templateGeneralPoint" :lat-lng="properties.latLng" :draggable="isEdited" @drag="generalPointDrag" @click="changeColorClick" @mouseover="changeColorMouseOverOut" @mouseout="changeColorMouseOverOut"></l-marker>
     <l-circle ref="sector" :lat-lng="properties.latLng" :radius="parseInt(properties.distance)" :options="sectorOptions" @click="changeColorClick" @mouseover="changeColorMouseOverOut" @mouseout="changeColorMouseOverOut" @add="renderSector"></l-circle>
     <l-marker v-if="isEdited" ref="markerWidth" :icon="templateMovePoint" :lat-lng="getCoordsWidthPoint()" :draggable="isEdited" @drag="widthPointDrag"></l-marker>
@@ -10,14 +10,9 @@
 <script>
 import {LCircle, LFeatureGroup, LMarker} from "@vue-leaflet/vue-leaflet";
 import "../services/sector.ts";
-
-import { inject } from 'vue';
+import store from "../store/store";
 
 export default {
-  setup() {
-    const globalPoint = inject('globalPoint');
-    return { globalPoint };
-  },
   components: {
     LFeatureGroup,
     LMarker,
@@ -31,17 +26,17 @@ export default {
     section: {
       object: Object,
       default: null
-    }
+    },
   },
   data() {
     return {
       templateMovePoint: L.icon({
-        iconUrl: 'public/dot.svg',
+        iconUrl: '/public/dot.svg',
         iconSize: [40, 40],
         iconAnchor: [20, 20],
       }),
       templateGeneralPoint:L.icon({
-        iconUrl: `public/${this.properties.type}.png`,
+        iconUrl: `/public/${this.properties.type}.png`,
         iconSize: [40, 40],
         iconAnchor: [20, 37],
       }),
@@ -50,6 +45,7 @@ export default {
       markerWidth:null,
       isActive: false,
       isEdited:false,
+      isCreating: false,
       defaultColor: "#626a6d",
       sectorOptions:{
         color: "#626a6d",
@@ -66,7 +62,7 @@ export default {
       return this.sector.getMiddleAngleCoords();
     },
     generalPointDrag() {
-      if(this.isActive) {
+      if(this.isEdited) {
         const newLatLng = this.$refs.generalPoint.leafletObject.getLatLng();
 
         this.properties.latLng = [Number(newLatLng.lat).toFixed(6), Number(newLatLng.lng).toFixed(6)];
@@ -78,6 +74,13 @@ export default {
         this.markerWidth.setLatLng(this.sector.getStartAngleCoords());
         this.markerDir.setLatLng(this.sector.getMiddleAngleCoords());
       }
+    },
+    setPointDirLenght(coords) {
+      this.sector.setLength(coords);
+      this.sector.setDirection(coords);
+      this.markerWidth.setLatLng(this.sector.getStartAngleCoords())
+      this.properties.direction = this.sector.options.direction
+      this.properties.distance = this.sector.options.radius
     },
     widthPointDrag() {
       const newLatLng = this.markerWidth.getLatLng();
@@ -96,8 +99,12 @@ export default {
       this.properties.distance = this.sector.options.radius
     },
     renderSector() {
-      // this.sector.setSector(this.properties.direction, this.properties.angle);
       this.sector = this.$refs.sector.leafletObject.setSector(this.properties.direction, this.properties.angle);
+
+      // need for added new point
+      if(this.properties.ulid === null) {
+        this.$store.dispatch('setActivePoint', this);
+      }
     },
     changeColorMouseOverOut() {
       if(this.sector.options.color === this.defaultColor && this.sector.options.color !== "#069668")
@@ -119,26 +126,44 @@ export default {
         this.sector.setStyle({color: '#313131', fillOpacity: 0.5, weight: 0.5,});
       }
     },
-    toggleIsActive() {
-      const activePoint = this.globalPoint.getActivePoint();
-
-      if(activePoint === this){
-        this.isActive = !this.isActive;
-        this.sector.setStyle({color: '#313131'});
-        this.globalPoint.setActivePoint(null);
-        this.$emit('set-active-point', null);
+    toggleActiveEditedStatus() {
+      const activePoint = store.getters.activePoint;
+      if(activePoint && activePoint.isCreating) {
+        const map = store.getters.map;
+        console.log(map);
+        map.off('mousemove');
+        map.off('click');
         return;
       }
-      if(activePoint)
-      {
+      if(!activePoint){
+        this.isActive = true;
+        this.$store.dispatch('setActivePoint', this);
+        this.$router.push({ name: 'InfoBlock', params: { id: this.properties.ulid } })
+        return;
+      }
+      if(activePoint === this) {
+        activePoint.isEdited = false;
+        activePoint.isActive = false;
+        activePoint.sector.setStyle({color: '#313131'});
+        const params = this.$route.params;
+        this.$router.push({ name: 'Home', params: {
+            lat: params.lat,
+            lng: params.lng,
+            zoom: params.zoom,
+          } })
+        this.$store.dispatch('setActivePoint', null);
+        return;
+      }
+      if(activePoint) {
+        activePoint.isEdited = false;
         activePoint.isActive = false;
         activePoint.changeColorClick();
         activePoint.changeColorMouseOverOut();
+        this.$store.dispatch('setActivePoint', null);
+        this.$store.dispatch('setActivePoint', this);
+        this.isActive = true;
+        this.$router.push({ name: 'InfoBlock', params: { id: this.properties.ulid } })
       }
-      this.isActive = !this.isActive;
-      this.globalPoint.setActivePoint(this);
-
-      this.$emit('set-active-point', this);
     },
     setInputWidth() {
       this.properties.angle = Number(this.properties.angle);
@@ -164,33 +189,28 @@ export default {
       this.properties.direction = this.sector.options.direction
       this.properties.distance = this.sector.options.radius
     },
-    setInputDistance() {
-      if(this.properties.distance === '') {
-        this.properties.distance = 0
-        this.sector.setRadius(0);
-        this.markerWidth.setLatLng(this.sector.getStartAngleCoords());
-        this.markerDir.setLatLng(this.sector.getMiddleAngleCoords())
+    setInputDistance(value) {
+      if(value === '') {
+        this.markerWidth.setLatLng(this.$refs.generalPoint.leafletObject.getLatLng());
+        this.markerDir.setLatLng(this.$refs.generalPoint.leafletObject.getLatLng())
         return;
       }
-      this.properties.distance = Number(this.properties.distance);
-      if(this.properties.distance > 2000) {
-        this.properties.distance = 2000
-        this.sector.setRadius(2000);
-        this.markerWidth.setLatLng(this.sector.getStartAngleCoords());
-        this.markerDir.setLatLng(this.sector.getMiddleAngleCoords())
-        return;
-      }
-      // if(this.properties.distance < 10) {
-      //   this.properties.distance = 10
-      //   this.sector.setRadius(10);
-      //   this.markerWidth.setLatLng(this.sector.getStartAngleCoords());
-      //   this.markerDir.setLatLng(this.sector.getMiddleAngleCoords())
-      //   return;
-      // }
-      if(this.properties.distance >= 10) {
-        this.sector.setRadius(this.properties.distance);
-        this.markerWidth.setLatLng(this.sector.getStartAngleCoords());
-        this.markerDir.setLatLng(this.sector.getMiddleAngleCoords())
+      if(value !== '') {
+        this.properties.distance = Number(value);
+        this.sector.setStyle({fillOpacity: 0.8})
+
+        if(this.properties.distance <= 2000) {
+          this.sector.setRadius(this.properties.distance);
+          this.markerWidth.setLatLng(this.sector.getStartAngleCoords());
+          this.markerDir.setLatLng(this.sector.getMiddleAngleCoords())
+          return;
+        }
+        if(this.properties.distance > 2000) {
+          this.properties.distance = 2000
+          this.sector.setRadius(2000);
+          this.markerWidth.setLatLng(this.sector.getStartAngleCoords());
+          this.markerDir.setLatLng(this.sector.getMiddleAngleCoords())
+        }
       }
     },
     setInputLatLng() {
@@ -207,26 +227,15 @@ export default {
       this.markerDir.setLatLng(this.sector.getMiddleAngleCoords());
     },
   },
-  // created() {
-  //   this.$nextTick(()=> {
-  //     this.sector = this.$refs.sector.leafletObject;
-  //     this.renderSector();
-  //     if(this.isActive) {
-  //       this.markerDir = this.$refs.markerDir.leafletObject;
-  //       this.markerWidth = this.$refs.markerWidth.leafletObject;
-  //     }
-  //   })
-  // },
   watch: {
     isEdited: {
-      immediate: true,
-      handler(isEdited) {
-        this.$nextTick(()=> {
-          if (this.isActive && this.isEdited) {
+      handler() {
+        if(this.isEdited) {
+          this.$nextTick(()=> {
             this.markerDir = this.$refs.markerDir.leafletObject;
             this.markerWidth = this.$refs.markerWidth.leafletObject;
-          }
-        })
+          })
+        }
       }
     }
   },
