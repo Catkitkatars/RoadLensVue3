@@ -45,12 +45,12 @@
           <div class="flex justify-center items-center">
             <span class="text-white my-2 material-icons cursor-pointer">
             directions_car
-          </span> <span class="text-white ml-2 d-inline-block text-center"> {{ activePoint.properties.car_speed }} </span>
+          </span> <span class="text-white ml-2 d-inline-block text-center"> {{ activePoint.properties.carSpeed }} </span>
           </div>
           <div class="flex justify-center items-center">
             <span class="text-white my-2 material-icons cursor-pointer">
             local_shipping
-            </span> <span class="text-white ml-2"> {{ activePoint.properties.truck_speed }} </span>
+            </span> <span class="text-white ml-2"> {{ activePoint.properties.truckSpeed }} </span>
           </div>
         </div>
         <div

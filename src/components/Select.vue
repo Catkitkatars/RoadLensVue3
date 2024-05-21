@@ -10,11 +10,12 @@
       v-model="selectedItem"
       :multiple="multiple"
       :class="{ 'multiple-selected': multiple }"
-      @option:selected="getCountryNumber"></VueSelect>
+      @option:selected="getCountryNumber"/>
 </template>
 
 <script>
 import VueSelect from "vue-select";
+import store from "../store/store.ts";
 
 export default {
   emits: ['getCountryNumber'],
@@ -32,7 +33,7 @@ export default {
       required: true
     },
     selectedValue: {
-      type: Number,
+      type: [Number, Array],
       default: 0
     },
     selectableItems: {
@@ -47,10 +48,15 @@ export default {
   },
   data() {
     return {
-      selectedItem: this.multiple ? null : this.selectableItems[this.selectedValue]
+      selectedItem: this.multiple ? this.selectedMultiple(this.selectedValue) : this.selectableItems[this.selectedValue]
     };
   },
   methods: {
+    selectedMultiple(selectedValue) {
+      return selectedValue.map(item => {
+        return this.selectableItems[parseInt(item) - 1];
+      })
+    },
     getCountryNumber(elem) {
       if(this.id === 'country') {
         this.$emit('getCountryNumber', Number(elem.value));
@@ -64,9 +70,29 @@ export default {
   },
   watch: {
     selectedItem(newValue) {
-      if(newValue === null) {
+      if(this.multiple) {
+        store.getters.activePoint.properties[this.id] = newValue.map(item => {
+          return item.value;
+        })
+        return;
+      }
+      if(this.id === 'type') {
+        store.getters.activePoint.templateGeneralPoint = L.icon({
+          iconUrl: `/public/${Number(this.selectedItem.value)}.png`,
+          iconSize: [40, 40],
+          iconAnchor: [20, 37],
+        })
+      }
+      if(newValue && newValue.value !== '') {
+        store.getters.activePoint.properties[this.id] = parseInt(this.selectedItem.value);
+      }
+
+      if (!newValue || newValue.value === '')
+      {
         this.selectedItem = this.selectableItems[0]
         this.$emit('getCountryNumber', Number(this.selectedItem.value));
+
+        store.getters.activePoint.properties[this.id] = 0;
       }
     },
   },

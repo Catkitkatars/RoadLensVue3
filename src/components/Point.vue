@@ -49,6 +49,7 @@ export default {
       defaultColor: "#626a6d",
       sectorOptions:{
         color: "#626a6d",
+        fillColor: "#626a6d",
         fillOpacity: 0.5,
         weight: 0.5,
       },
@@ -91,7 +92,6 @@ export default {
     },
     lengthPointDrag() {
       const newLatLng = this.markerDir.getLatLng();
-
       this.sector.setLength(newLatLng);
       this.sector.setDirection(newLatLng);
       this.markerWidth.setLatLng(this.sector.getStartAngleCoords())
@@ -107,30 +107,29 @@ export default {
       }
     },
     changeColorMouseOverOut() {
-      if(this.sector.options.color === this.defaultColor && this.sector.options.color !== "#069668")
+      if(this.sector.options.fillColor === this.defaultColor && this.sector.options.fillColor !== "#069668")
       {
-        this.sector.setStyle({color: "#313131"})
+        this.sector.setStyle({fillColor: "#313131", color:"#626a6d"});
       }
-      else if(this.sector.options.color !== "#069668")
+      else if(this.sector.options.fillColor !== "#069668")
       {
-        this.sector.setStyle({color: '#626a6d'});
+        this.sector.setStyle({fillColor: '#626a6d', color:"#626a6d"});
       }
     },
     changeColorClick() {
-      if(this.sector.options.color === '#313131')
+      if(this.sector.options.fillColor === '#313131')
       {
-        this.sector.setStyle({color: "#069668", fillOpacity: 0.8, weight: 2,})
+        this.sector.setStyle({color: '#069668', fillColor: "#069668", fillOpacity: 0.8, weight: 1.5,})
       }
       else
       {
-        this.sector.setStyle({color: '#313131', fillOpacity: 0.5, weight: 0.5,});
+        this.sector.setStyle({color:"#626a6d", fillColor: '#313131', fillOpacity: 0.5, weight: 0.5,});
       }
     },
     toggleActiveEditedStatus() {
       const activePoint = store.getters.activePoint;
       if(activePoint && activePoint.isCreating) {
         const map = store.getters.map;
-        console.log(map);
         map.off('mousemove');
         map.off('click');
         return;
@@ -165,6 +164,10 @@ export default {
         this.$router.push({ name: 'InfoBlock', params: { id: this.properties.ulid } })
       }
     },
+    setInputType(selectedType) {
+      this.properties.type = parseInt(selectedType);
+      console.log(this);
+    },
     setInputWidth() {
       this.properties.angle = Number(this.properties.angle);
       if (this.properties.angle >= 5 && this.properties.angle <= 120) {
@@ -193,11 +196,12 @@ export default {
       if(value === '') {
         this.markerWidth.setLatLng(this.$refs.generalPoint.leafletObject.getLatLng());
         this.markerDir.setLatLng(this.$refs.generalPoint.leafletObject.getLatLng())
+        this.properties.distance = 0;
         return;
       }
       if(value !== '') {
         this.properties.distance = Number(value);
-        this.sector.setStyle({fillOpacity: 0.8})
+        this.sector.setStyle({fillOpacity: 0.8});
 
         if(this.properties.distance <= 2000) {
           this.sector.setRadius(this.properties.distance);

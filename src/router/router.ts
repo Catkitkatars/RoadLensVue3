@@ -6,9 +6,7 @@ import EditBlock from "@/components/EditBlock.vue";
 const routes = [
     {
         path: '/',
-        name: 'Redirect',
-        component: Map,
-        props: true,
+        redirect: '/map/56.820095/60.571232/15'
     },
     {
         path: '/map/:lat/:lng/:zoom',
@@ -32,6 +30,10 @@ const routes = [
             },
         ],
     },
+    {
+        path: '/:catchAll(.*)', // С помощью синтаксиса ':catchAll(.*)' мы перехватываем все остальные маршруты
+        component: () => import('/src/views/404.vue') // Путь к вашему компоненту 404 страницы
+    }
 ]
 
 const router = createRouter({

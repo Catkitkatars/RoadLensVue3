@@ -40,7 +40,7 @@
         <Select
             heading="Страна"
             ref="country"
-            :selectable-items="countrysList"
+            :selectable-items="this.countrysList"
             :id="'country'"
             :selected-value="activePoint.properties.country"
             @get-country-number="getCountryNumber"
@@ -108,6 +108,7 @@
             :selectable-items="flagsList"
             :id="'flags'"
             :multiple="true"
+            :selected-value="activePoint.properties.flags"
         />
       </div>
       <div class="my-2">
@@ -115,6 +116,7 @@
             heading="Статус"
             :selectable-items="status"
             :id="'status'"
+            :selected-value="activePoint.properties.status"
         />
       </div>
 
@@ -149,7 +151,6 @@
               ref="distance"
               :value="activePoint.properties.distance"
               @input="(event) => {
-                console.log(event.target.value);
                 activePoint.setInputDistance(event.target.value)
               }"
           />
@@ -162,7 +163,7 @@
           </label>
           <input
               class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="direction" type="text" v-model="activePoint.properties.car_speed"
+              id="direction" type="text" v-model="activePoint.properties.carSpeed"
           />
         </div>
         <div class="bg-slate-700 pl-0.5" >
@@ -171,7 +172,7 @@
           </label>
           <input
               class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="distance" type="text" v-model="activePoint.properties.truck_speed"
+              id="distance" type="text" v-model="activePoint.properties.truckSpeed"
           />
         </div>
       </div>
@@ -220,7 +221,7 @@
             />
           </div>
           <div
-              v-if="activePoint.properties.ASC.next || !activePoint"
+              v-if="activePoint.properties.ASC.next === '' || activePoint.properties.ASC.next "
               class="bg-slate-700 pl-0.5 w-1/3" >
             <label class="text-white" for="distance">
               Следующая
@@ -233,7 +234,9 @@
         </div>
       </div>
     </div>
-    <div class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4">
+    <div
+        v-if="activePoint.properties.ulid"
+        class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4">
       <p
           class="absolute -top-5 left-4 text-white bg-emerald-600 p-2 rounded-lg"
       >Информация</p>
@@ -242,14 +245,18 @@
       <p class="text-white my-2">Модератор: <span>{{ activePoint.properties.user }}</span></p>
     </div>
     <div v-if="!activePoint.properties.ulid" class="flex">
-      <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
+      <a
+          @click="onCreate"
+          class="cursor-pointer text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
         Создать
-      </button>
+      </a>
     </div>
-    <div v-if="activePoint.properties.isDeleted === 0" class="flex">
-      <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
+    <div
+        @click="onUpdate"
+        v-if="activePoint.properties.ulid" class="flex">
+      <a class="cursor-pointer text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
         Обновить
-      </button>
+      </a>
     </div>
   </form>
   </div>
@@ -257,6 +264,8 @@
 <script lang="ts">
 import Select from "@/components/Select.vue";
 import store from "@/store/store";
+import pointService from "@/services/PointService";
+import selectParams from "@/enums/params";
 
 export default {
   components: {
@@ -297,7 +306,7 @@ export default {
       flagsList: [
         { value: '1', label: 'В спину' },
         { value: '2', label: 'Разметка' },
-        { value: '3', label: 'Пешеходный' },
+        { value: '3', label: 'Переход' },
         { value: '4', label: 'Обочина' },
         { value: '5', label: 'Автобусная' },
         { value: '6', label: 'Контроль остановки' },
@@ -452,15 +461,26 @@ export default {
   methods: {
     closeBlock() {
       this.activePoint.isEdited = false;
+      this.activePoint.isCreating = false;
       this.activePoint.changeColorClick();
       this.activePoint.changeColorMouseOverOut();
       this.$store.dispatch('setActivePoint', null);
 
+      if(this.activePoint.properties.ulid === null) {
+        store.getters.points.pop()
+      }
+
       const params = this.$route.params;
+      let newZoom = params.zoom;
+
+      if(this.activePoint.properties.ulid) {
+        newZoom = parseInt(newZoom) - 1;
+      }
+      store.getters.map.setZoom(newZoom);
       this.$router.push({ name: 'Home', params: {
           lat: params.lat,
           lng: params.lng,
-          zoom: params.zoom,
+          zoom: newZoom,
         } })
     },
     backEditBlock() {
@@ -487,14 +507,103 @@ export default {
       }
       this.countryNumber = number - 1
       this.region = this.regionsList[number - 1]
+      if(!this.activePoint.properties.ulid) {
+        store.getters.activePoint.properties.country = 0;
+        store.getters.activePoint.properties.region = 0;
+      }
     },
+    onUpdate() {
+      console.log(this.activePoint)
+    },
+    async onCreate() {
+      console.log(this.activePoint);
+      const requestData = {
+        country: this.activePoint.properties.country,
+        region: this.activePoint.properties.region,
+        lat: this.activePoint.properties.latLng[0],
+        lng: this.activePoint.properties.latLng[1],
+        type: this.activePoint.properties.type,
+        model: this.activePoint.properties.model,
+        flags: this.activePoint.properties.flags,
+        angle: this.activePoint.properties.angle,
+        direction: this.activePoint.properties.direction,
+        distance: this.activePoint.properties.distance,
+        carSpeed: this.activePoint.properties.carSpeed,
+        truckSpeed: this.activePoint.properties.truckSpeed,
+        isASC: 0,
+      }
+
+      // if(this.activePoint.properties.ASC)
+      // {
+      //   requestData.ASC = this.activePoint.properties.ASC;
+      // }
+
+      console.log(requestData);
+
+      const result = await pointService.addPointRequest(requestData);
+
+      if(result) {
+        this.$notify({
+          title: "Успешно",
+          text: "Успешно создано!",
+          type: "success",
+        });
+        store.getters.activePoint.isEdited = false
+        store.getters.activePoint.sector.setStyle({fillColor: '#626a6d', color:"#626a6d", fillOpacity: 0.5, weight: 0.5});
+        this.$store.dispatch('setActivePoint', null);
+        const params = this.$route.params;
+        this.$router.push({ name: 'Home', params: {
+            lat: params.lat,
+            lng: params.lng,
+            zoom: params.zoom,
+          }})
+      }
+    }
+  },
+  watch: {
+    ascBlockChecked: {
+      handler() {
+        if(!this.activePoint.properties.isASC) {
+          this.activePoint = store.getters.activePoint;
+          this.activePoint.properties.ASC = {
+            previous: null,
+            speed:0,
+            next:''
+          }
+        }
+      }
+    }
   },
   created() {
     this.activePoint = store.getters.activePoint;
     this.activePoint.properties.isEdited = true;
 
+    console.log(this.activePoint);
+
     if(this.activePoint.properties.isASC) {
       this.ascBlockChecked = true;
+
+      if(this.activePoint.properties.ASC.previous !== null) {
+        this.activePoint.properties.ASC.next = ''
+      }
+    }
+    if(this.activePoint.properties.ulid) {
+      const map = store.getters.map;
+
+      const activePointLatLng = this.activePoint.properties.latLng;
+
+      let windowOffset = 200;
+
+      if(map.getZoom() > 15) {
+        windowOffset = 300;
+      }
+
+      const newCenter = map.containerPointToLatLng(
+          map.latLngToContainerPoint(activePointLatLng)
+              .subtract([windowOffset, 0])
+      );
+
+      map.setView(newCenter, 16);
     }
   },
 }

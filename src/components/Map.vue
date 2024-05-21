@@ -34,8 +34,11 @@
         />
 
         <l-control :position="'bottomright'">
-          <button class="bg-emerald-600 p-6 text-3xl w-8 h-8 flex justify-center items-center text-white" @click="createNewPoint">
-            <span class="">+</span>
+          <button v-if="!creatingNew"
+                  class="bg-emerald-600 p-6 text-3xl w-8 h-8 flex justify-center items-center text-white" @click="createNewPoint">
+            <span class="material-icons text-white cursor-pointer">
+              add
+            </span>
           </button>
         </l-control>
         <l-tile-layer
@@ -46,6 +49,7 @@
 </template>
 
 <script lang="ts">
+import L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import {LMap, LTileLayer, LFeatureGroup, LControl} from "@vue-leaflet/vue-leaflet";
 import pointService from "@/services/PointService";
@@ -77,6 +81,7 @@ export default {
       points: [],
       sections: [],
       activePoint: null,
+      creatingNew: false,
     };
   },
   watch: {
@@ -86,43 +91,6 @@ export default {
       },
       immediate: true
     },
-    activePoint: {
-      handler() {
-        if (!this.activePoint) {
-          const map = this.$refs.map.leafletObject;
-          this.$refs.map.leafletObject.setView(
-              this.center,
-              16
-          );
-          this.$nextTick(() => {
-            this.zoom = map.getZoom();
-            this.center = map.getCenter();
-          });
-        } else {
-          const activePointLatLng = this.activePoint.properties.latLng;
-          const map = this.$refs.map.leafletObject;
-
-          let windowOffset = 200;
-
-          if(map.getZoom() > 16) {
-            windowOffset = 300;
-          }
-
-          const newCenter = map.containerPointToLatLng(
-              map.latLngToContainerPoint(activePointLatLng)
-                  .subtract([windowOffset, 0])
-          );
-
-          map.setView(newCenter, 17);
-
-          this.$nextTick(() => {
-            this.zoom = map.getZoom();
-            this.center = map.getCenter();
-          });
-        }
-      }
-
-    }
   },
   methods: {
     init() {
@@ -185,12 +153,12 @@ export default {
       const activePoint = store.getters.activePoint;
 
       if (activePoint) {
-        pointService.removePoint(points, activePoint.properties.ulid);
-        points.push(pointService.createPoint(activePoint));
+        pointService.removePointFromArr(points, activePoint.properties.ulid);
+        points.push(pointService.addPointToArr(activePoint));
       }
       this.sections = sectionService.getSections(points)
 
-      console.log(points);
+      this.$store.dispatch('setPoints', points);
       this.points = points;
     },
     setActivePoint() {
@@ -203,48 +171,73 @@ export default {
 
     },
     createNewPoint() {
+      if(store.getters.activePoint)
+      {
+        return;
+      }
+
+      const mapElement = this.$refs.map.leafletObject._container;
+      let mousePoint = L.marker([0, 0],
+          {icon: L.icon({
+              iconUrl: `/public/0.png`,
+              iconSize: [40, 40],
+              iconAnchor: [20, 37],
+            })}
+      ).addTo(this.$refs.map.leafletObject)
+      const mouseMoveHandler = (event) => {
+        mousePoint.setLatLng(event.latlng)
+      }
+      this.$refs.map.leafletObject.on('mousemove', mouseMoveHandler);
+
+
       const promise = new Promise((resolve, reject) => {
         const clickHandler = (event) => {
+          mousePoint.removeFrom(this.$refs.map.leafletObject);
           this.$refs.map.leafletObject.off('click', clickHandler);
-          resolve([event.latlng.lat, event.latlng.lng]);
+          resolve([
+              parseFloat(event.latlng.lat.toFixed(6)),
+              parseFloat(event.latlng.lng.toFixed(6))
+          ]);
         };
         this.$refs.map.leafletObject.on('click', clickHandler);
       });
 
       promise.then((latlng) => {
         this.addNewPoint(latlng);
+        mapElement.style.cursor = 'pointer';
       }).catch((error) => {
         console.error('Ошибка при ожидании клика на карте:', error);
+        mapElement.style.cursor = 'pointer';
+        const map = store.getters.map;
+        map.off('mousemove');
+        map.off('click');
       });
     },
-
     addNewPoint(latlng) {
       const pointData = {
         properties: {
           ulid: null,
           country: 0,
-          type: 1,
+          type: 0,
           model: 0,
           distance: 0,
           direction: 0,
           angle: 20,
+          status:0,
+          flags:[],
           latLng: latlng,
-          car_speed: 0,
-          truck_speed: 0,
-          dateCreate: '-',
-          lastUpdate: '-',
+          carSpeed: 0,
+          truckSpeed: 0,
         },
       };
 
       this.points.push(pointData);
 
-      console.log(this.points);
       this.$nextTick(() => {
         const newPoint = store.getters.activePoint;
-        console.log(newPoint);
         newPoint.isEdited = true;
         newPoint.isCreating = true;
-        newPoint.sector.setStyle({ color: "#069668", fillOpacity: 0.8, weight: 2 });
+        newPoint.sector.setStyle({color: '#069668', fillColor: "#069668", fillOpacity: 0.8, weight: 1.5,})
         const mouseMoveHandler = (event) => {
           newPoint.setPointDirLenght(event.latlng);
         };
@@ -255,7 +248,7 @@ export default {
       });
     },
   },
-    created() {
+  created() {
     const params = this.$route.params;
     if(params) {
       this.center = [parseFloat(params.lat), parseFloat(params.lng)];
