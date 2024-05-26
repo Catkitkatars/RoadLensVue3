@@ -54,6 +54,7 @@
           </div>
         </div>
         <div
+            :class="{ 'flexASC': activePoint.properties.ASC.previous && activePoint.properties.ASC.next }"
             v-if="activePoint.properties.isASC"
             class="relative border-solid border-2 border-emerald-600 my-8 rounded-lg p-2 pt-4 flex justify-around align-middle">
           <p
@@ -62,8 +63,11 @@
           <div class="flex justify-center items-center my-4">
             <p
                 v-if="activePoint.properties.ASC.previous"
-                class="text-white relative">| ___________
-              <span class="material-icons text-center absolute top-4 left-10">
+                class="text-white relative">| ____________________
+              <span class="material-icons text-center absolute top-4 left-8">
+                  trending_flat
+              </span>
+              <span class="material-icons text-center absolute top-4 left-32">
                   trending_flat
               </span>
               <span class="text-white my-2 material-icons cursor-pointer absolute -top-4 -left-2">
@@ -80,8 +84,8 @@
             <p
                 v-if="activePoint.properties.ASC.next"
                 class="text-white relative">
-              | ____________________ |
-              <span class="text-emerald-600 my-2 material-icons cursor-pointer absolute -top-4 -left-2">
+              &nbsp| ____________________ |
+              <span class="text-emerald-600 my-2 material-icons cursor-pointer absolute -top-4 -left-1">
                 videocam
               </span>
               <span class="text-white my-2 material-icons cursor-pointer absolute -top-4 -right-3">
@@ -112,7 +116,7 @@
           <p
               class="absolute -top-5 left-4 text-white bg-emerald-600 p-2 rounded-lg"
           >Информация</p>
-          <p class="text-white my-2">Статус: <span>Подтверждена</span></p>
+          <p class="text-white my-2">Статус: <span> {{ status[activePoint.properties.status].label }} </span></p>
           <p class="text-white my-2">Дата создания: <span>{{ activePoint.properties.dateCreate }}</span></p>
           <p class="text-white my-2">Дата обновления: <span>{{ activePoint.properties.lastUpdate }}</span></p>
           <p class="text-white my-2">Модератор: <span>{{ activePoint.properties.user }}</span></p>
@@ -145,7 +149,7 @@ export default {
       status:[
         { value: '1', label: 'Подтвержден' },
         { value: '2', label: 'Не подтвержден' },
-        { value: '3', label: 'Удалена' },
+        { value: '3', label: 'Удален' },
       ],
       typeList:[
         { value: '', label: '--Выберите тип--' },
@@ -352,3 +356,13 @@ export default {
 
 
 </script>
+
+<style>
+.flexASC {
+  display: flex;
+  flex-direction: column;
+}
+.visible {
+  display: block;
+}
+</style>

@@ -26,12 +26,14 @@ export default {
       color: 'red',
       dashArray: '10, 10',
       opacity: 0.7,
+      pointsInSection: [],
     }
   },
   computed: {
     polylineCoords() {
       const coords = [];
       for (const key in this.polylineData) {
+        this.pointsInSection.push(key);
         if(key === 'id') {
           continue;
         }
@@ -39,6 +41,7 @@ export default {
           coords.push(this.polylineData[key].coords);
         }
       }
+
       return coords;
     }
   },

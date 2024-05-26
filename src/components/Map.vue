@@ -1,10 +1,7 @@
 <template>
+      <Header/>
+      <search/>
 
-      <div
-          style="z-index: 1000"
-          class="absolute -top-2 right-48 ">
-        <Header/>
-      </div>
       <router-view/>
       <l-map
           id="map"
@@ -35,8 +32,8 @@
 
         <l-control :position="'bottomright'">
           <button v-if="!creatingNew"
-                  class="bg-emerald-600 p-6 text-3xl w-8 h-8 flex justify-center items-center text-white" @click="createNewPoint">
-            <span class="material-icons text-white cursor-pointer">
+                  class="rounded bg-emerald-600 p-6 text-3xl w-8 h-8 flex justify-center items-center text-white " @click="createNewPoint">
+            <span class="material-icons text-white cursor-pointer hover:text-slate-800 transition-colors">
               add
             </span>
           </button>
@@ -58,11 +55,14 @@ import LPoint from '@/components/Point.vue';
 import Section from "@/components/Section.vue";
 import InfoBlock from "@/components/InfoBlock.vue";
 import Header from "@/components/Header.vue";
+import Search from "@/components/Search.vue";
+
 import store from "../store/store";
 
 export default {
   components: {
     Header,
+    Search,
     InfoBlock,
     Section,
     LMap,
@@ -95,6 +95,8 @@ export default {
   methods: {
     init() {
       this.$store.dispatch('setMap', this.$refs.map.leafletObject);
+      this.$store.dispatch('setMapVue', this.$refs.map);
+
       this.onBoundsUpdate();
       this.center = this.$refs.map.leafletObject.getCenter();
       this.$router.push({
@@ -153,10 +155,18 @@ export default {
       const activePoint = store.getters.activePoint;
 
       if (activePoint) {
-        pointService.removePointFromArr(points, activePoint.properties.ulid);
-        points.push(pointService.addPointToArr(activePoint));
+        const index = points.findIndex(point => point.properties.ulid === activePoint.properties.ulid);
+
+        if (index !== -1)
+        {
+          points.splice(index, 1, pointService.addPointToArr(activePoint));
+        }
+        else
+        {
+          points.push(pointService.addPointToArr(activePoint));
+        }
       }
-      this.sections = sectionService.getSections(points)
+      this.sections = sectionService.getSections(points, activePoint);
 
       this.$store.dispatch('setPoints', points);
       this.points = points;

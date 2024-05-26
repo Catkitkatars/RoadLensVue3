@@ -1,8 +1,5 @@
-import L from 'leaflet';
-
-
 const sectionService = {
-    getSections: (points) => {
+    getSections: (points, activePoint) => {
         return points.reduce((acc, item) => {
             if (item.properties.isASC === 0) {
                 return acc;

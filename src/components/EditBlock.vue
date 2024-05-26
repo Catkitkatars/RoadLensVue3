@@ -279,9 +279,9 @@ export default {
       region: null,
       ascBlockChecked: false,
       status:[
-        { value: '1', label: 'Подтвержден' },
-        { value: '2', label: 'Не подтвержден' },
-        { value: '3', label: 'Удалена' },
+        { value: '0', label: 'Подтвержден' },
+        { value: '1', label: 'Не подтвержден' },
+        { value: '2', label: 'Удален' },
       ],
       typeList:[
         { value: '', label: '--Выберите тип--' },
@@ -515,9 +515,9 @@ export default {
     onUpdate() {
       console.log(this.activePoint)
     },
-    async onCreate() {
-      console.log(this.activePoint);
+    async onUpdate() {
       const requestData = {
+        ulid: this.activePoint.properties.ulid,
         country: this.activePoint.properties.country,
         region: this.activePoint.properties.region,
         lat: this.activePoint.properties.latLng[0],
@@ -525,12 +525,61 @@ export default {
         type: this.activePoint.properties.type,
         model: this.activePoint.properties.model,
         flags: this.activePoint.properties.flags,
+        status: this.activePoint.properties.status,
         angle: this.activePoint.properties.angle,
         direction: this.activePoint.properties.direction,
         distance: this.activePoint.properties.distance,
         carSpeed: this.activePoint.properties.carSpeed,
         truckSpeed: this.activePoint.properties.truckSpeed,
-        isASC: 0,
+        isASC: this.activePoint.properties.isASC,
+      }
+
+      if(this.activePoint.properties.ASC) {
+        if(
+            this.activePoint.properties.ASC.speed &&
+            this.activePoint.properties.ASC.next
+        ) {
+          requestData.ASC = {
+            previous: this.activePoint.properties.ASC.previous,
+            speed: this.activePoint.properties.ASC.speed,
+            next: this.activePoint.properties.ASC.next,
+          }
+        }
+      }
+
+      console.log(requestData);
+      const result = await pointService.updatePointRequest(requestData);
+
+    },
+    async onCreate() {
+      const requestData = {
+          country: this.activePoint.properties.country,
+          region: this.activePoint.properties.region,
+          lat: this.activePoint.properties.latLng[0],
+          lng: this.activePoint.properties.latLng[1],
+          type: this.activePoint.properties.type,
+          model: this.activePoint.properties.model,
+          flags: this.activePoint.properties.flags,
+          status: this.activePoint.properties.status,
+          angle: this.activePoint.properties.angle,
+          direction: this.activePoint.properties.direction,
+          distance: this.activePoint.properties.distance,
+          carSpeed: this.activePoint.properties.carSpeed,
+          truckSpeed: this.activePoint.properties.truckSpeed,
+          isASC: 0,
+      }
+
+      if(this.activePoint.properties.ASC) {
+        if(
+            this.activePoint.properties.ASC.speed &&
+            this.activePoint.properties.ASC.next
+        ) {
+          requestData.ASC = {
+            previous: this.activePoint.properties.ASC.previous,
+            speed: this.activePoint.properties.ASC.speed,
+            next: this.activePoint.properties.ASC.next,
+          }
+        }
       }
 
       // if(this.activePoint.properties.ASC)
@@ -551,6 +600,7 @@ export default {
         store.getters.activePoint.isEdited = false
         store.getters.activePoint.sector.setStyle({fillColor: '#626a6d', color:"#626a6d", fillOpacity: 0.5, weight: 0.5});
         this.$store.dispatch('setActivePoint', null);
+        store.getters.mapVue;
         const params = this.$route.params;
         this.$router.push({ name: 'Home', params: {
             lat: params.lat,
@@ -582,10 +632,6 @@ export default {
 
     if(this.activePoint.properties.isASC) {
       this.ascBlockChecked = true;
-
-      if(this.activePoint.properties.ASC.previous !== null) {
-        this.activePoint.properties.ASC.next = ''
-      }
     }
     if(this.activePoint.properties.ulid) {
       const map = store.getters.map;

@@ -25,19 +25,17 @@ const pointService = {
             .catch(error => console.log(error));
     },
 
+    updatePointRequest: async function (requestData) {
+        return await axios.post('http://localhost:8080/api/update', requestData, {headers: this.headers})
+            .then(res => res)
+            .catch(error => console.log(error));
+    },
+
     addPointToArr: (selectedPoint) => {
         return {
             properties: selectedPoint.properties
         }
     },
-
-    removePointFromArr(points, id) {
-        const index = points.findIndex(point => point.properties.ulid === id);
-        if (index !== -1) {
-            points.splice(index, 1);
-        }
-    },
-
 }
 
 export default pointService;

@@ -3,13 +3,30 @@
 </script>
 
 <template>
+  <Menu/>
   <router-view/>
   <notifications
       classes="notification"
       position="bottom left"/>
 </template>
 
+<script>
+import Menu from "@/components/Menu.vue";
+
+
+export default {
+  components: {
+    Menu
+  },
+}
+</script>
+
+
 <style>
+body {
+  overflow-x:hidden;
+}
+
 .notification {
   margin: 0 5px 5px;
   padding: 10px;
