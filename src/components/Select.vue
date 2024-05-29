@@ -79,8 +79,8 @@ export default {
       if(this.id === 'type') {
         store.getters.activePoint.templateGeneralPoint = L.icon({
           iconUrl: `/public/${Number(this.selectedItem.value)}.png`,
-          iconSize: [40, 40],
-          iconAnchor: [20, 37],
+          iconSize: [50, 50],
+          iconAnchor: [25, 45],
         })
       }
       if(newValue && newValue.value !== '') {

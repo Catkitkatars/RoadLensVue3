@@ -91,7 +91,7 @@
               <span class="text-white my-2 material-icons cursor-pointer absolute -top-4 -right-3">
                 videocam
               </span>
-              <div class="text-sm flex justify-center items-center absolute -top-4 left-12">
+              <div class="text-sm flex justify-center items-center absolute -top-4 left-14">
                 <span class="text-white my-2 material-icons cursor-pointer">
                 speed
                 </span>

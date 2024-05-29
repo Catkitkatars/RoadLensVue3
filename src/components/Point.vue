@@ -37,8 +37,8 @@ export default {
       }),
       templateGeneralPoint:L.icon({
         iconUrl: `/public/${this.properties.type}.png`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 37],
+        iconSize: [50, 50],
+        iconAnchor: [25, 45],
       }),
       sector: null,
       markerDir:null,

@@ -221,7 +221,7 @@
             />
           </div>
           <div
-              v-if="activePoint.properties.ASC.next === '' || activePoint.properties.ASC.next "
+              v-if="activePoint.properties.ASC.next === '' || activePoint.properties.ASC.next || (!activePoint.properties.ASC.next && activePoint.properties.ASC.previous) "
               class="bg-slate-700 pl-0.5 w-1/3" >
             <label class="text-white" for="distance">
               Следующая
@@ -534,7 +534,7 @@ export default {
         isASC: this.activePoint.properties.isASC,
       }
 
-      if(this.activePoint.properties.ASC) {
+      if(this.ascBlockChecked && this.activePoint.properties.ASC) {
         if(
             this.activePoint.properties.ASC.speed &&
             this.activePoint.properties.ASC.next
@@ -549,6 +549,23 @@ export default {
 
       console.log(requestData);
       const result = await pointService.updatePointRequest(requestData);
+
+      if(result) {
+        this.$notify({
+          title: "Успешно",
+          text: "Успешно обновлено!",
+          type: "success",
+        });
+        store.getters.activePoint.isEdited = false
+        store.getters.activePoint.sector.setStyle({fillColor: '#626a6d', color:"#626a6d", fillOpacity: 0.5, weight: 0.5});
+        this.$store.dispatch('setActivePoint', null);
+        const params = this.$route.params;
+        this.$router.push({ name: 'Home', params: {
+            lat: params.lat,
+            lng: params.lng,
+            zoom: params.zoom,
+          }})
+      }
 
     },
     async onCreate() {
@@ -600,7 +617,6 @@ export default {
         store.getters.activePoint.isEdited = false
         store.getters.activePoint.sector.setStyle({fillColor: '#626a6d', color:"#626a6d", fillOpacity: 0.5, weight: 0.5});
         this.$store.dispatch('setActivePoint', null);
-        store.getters.mapVue;
         const params = this.$route.params;
         this.$router.push({ name: 'Home', params: {
             lat: params.lat,

@@ -190,8 +190,8 @@ export default {
       let mousePoint = L.marker([0, 0],
           {icon: L.icon({
               iconUrl: `/public/0.png`,
-              iconSize: [40, 40],
-              iconAnchor: [20, 37],
+              iconSize: [50, 50],
+              iconAnchor: [25, 45],
             })}
       ).addTo(this.$refs.map.leafletObject)
       const mouseMoveHandler = (event) => {
